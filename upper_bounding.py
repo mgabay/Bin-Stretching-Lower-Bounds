@@ -11,6 +11,7 @@ at least 1+alpha.
 import time
 from bins import *
 from bpsolver import *
+import argparse
 
 # TODO:
 #   Solution tracking, format: (configuration, item, solutions)
@@ -30,7 +31,8 @@ def run(weights, num_bins, capacity=1, lower_bound=-1):
     num_bins -- number of bins
     capacity -- bins capacity
 
-    Return maximal stretching factor
+    Return maximal capacity required
+    (stretching factor = ret / capacity)
     """
     bins = bin_factory(num_bins, capacity)
 
@@ -46,8 +48,8 @@ def run(weights, num_bins, capacity=1, lower_bound=-1):
     if lower_bound == -1:
         lower_bound = capacity
     val = branch(ws, bins, num_bins*capacity, lower_bound, 2*capacity)
-    print val
-    return float(val)/capacity
+
+    return val
 
 
 ttime = 0
@@ -148,6 +150,7 @@ def branch(weights, bins, rem_cap, lower_bound, upper_bound, memo={}):
         u = b.used()
         max_bin = max(u, max_bin)
         min_bin = min(u, min_bin)
+    lower_bound = max(max_bin, lower_bound)
 
     if max_bin >= upper_bound:
         # fathom branch:  we have stretched enough already
@@ -162,7 +165,7 @@ def branch(weights, bins, rem_cap, lower_bound, upper_bound, memo={}):
     """
     if min_bin + rem_cap <= lower_bound:
         # useless branch
-        return max_bin
+        return lower_bound
 
     bb = [b for b in bins]
     bb.sort(key=lambda x: x.remaining, reverse=True)
@@ -201,15 +204,19 @@ def branch(weights, bins, rem_cap, lower_bound, upper_bound, memo={}):
 
 def main():
     print "Solver = "+IPSolver
-    size = 11
+    size = 10
     for nbins in xrange(2, 10):
         nbins = 3
         print "==========="
-        print "%s bin" % nbins
-        print "Stretching factor: %s" %\
-            str(run(range(1,size+1),num_bins=nbins,capacity=size, lower_bound=4*size/3))
+        print "Packing items of size 1 to %s into %s bins" % (size,nbins)
+        t0 = time.time()
+        res = run(range(1,size+1), num_bins=nbins, capacity=size,\
+                lower_bound=4*size/3)   # We want to improve 4/3 lower bound
+        t0 = time.time() - t0
+        print "Stretching factor: %s/%s = %s" % (res,size,float(res)/size)
         break
     print "Time spent verifying feasibility: %s" % ttime
+    print "Total elapsed time: %s" % t0
 
 if __name__ == "__main__":
     main()
