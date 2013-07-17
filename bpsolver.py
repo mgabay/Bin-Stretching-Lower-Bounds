@@ -8,6 +8,8 @@ from pulp import *
 #import yaposib
 from bins import *
 from heuristic import *
+#from gurobipy import *
+import random
 
 ################## Bin Packing modeling ####################
 
@@ -36,9 +38,23 @@ def is_feasible(items, num_bins, capacity, solver="GLPK"):
     ret, res = heuristics(items, num_bins, capacity)
     if ret:
         sol = res
+        mem[t] = sol
+        return sol
+
+    """
+    Current implemented bound is not interesting enough
+    m = compute_min_bins(items, capacity)
+    if m > num_bins:
+        sol = False
+        mem[t] = sol
     else:
-        mod = make_model(items, num_bins, capacity)
-        sol = solve(mod, solver)
+    """
+
+    mod = make_model(items, num_bins, capacity)
+    sol = solve(mod, solver)
+    #sol = grb_solve(items, num_bins, capacity)
+    #assert grb_solve(items, num_bins, capacity) == sol
+
     mem[t] = sol
     return sol
 
@@ -147,8 +163,16 @@ def heuristics(items, num_bins, capacity):
         return True, False
 
     # FFD
-    if first_fit(items[:], bin_factory(num_bins, capacity)):
+    tmp_bins = bin_factory(num_bins, capacity)
+    items.sort(reverse=True)
+    if first_fit(items, tmp_bins):
         return True, True
+
+    for i in xrange(max(2,capacity-8)):
+        clean_bins(tmp_bins)
+        random.shuffle(items)
+        if first_fit(items, tmp_bins):
+            return True, True
 
     return False, True
 
@@ -171,6 +195,61 @@ def solve(model, solver="GLPK"):
 
     return False
 
+
+def grb_solve(items, num_bins, capacity):
+    ritems = xrange(len(items))
+    rbins = xrange(num_bins)
+
+    # Model
+    m = Model("Bin Packing Feasibility")
+
+    # dvar item is in/out
+    var = {(i,j): m.addVar(name="x(%s,%s)" % (i,j),vtype=GRB.BINARY)\
+            for i in ritems for j in rbins}
+
+    # Update model to integrate new variables
+    m.update()
+
+    # Objective
+    #m.setObjective(0)
+
+    # Big item assignments can be fixed from the beginning
+    items.sort(reverse=True)
+    cur = 0
+    count = 0
+    half = 0
+    for i in items:
+        if 2*i.size < capacity:
+            break
+        m.addConstr(var[(count,cur)] == 1,\
+                "Fixing item "+str(count)+" to bin "+str(cur))
+        if 2*i.size == capacity and half == 0:
+            half = 1
+        else:
+            half = 0
+            cur += 1
+        count += 1
+
+    # If there were no big item, we can still fix the first one
+    if count == 0:
+        m.addConstr(var[(0,0)] == 1, "First item symmetry breaking")
+
+    # Capacity constraint
+    for i in ritems:
+        m.addConstr(quicksum(var[(i,j)] for j in rbins) == 1,\
+                "Assign item %s" % i)
+
+    for j in rbins:
+        m.addConstr(
+            quicksum(var[(i, j)]*items[i].size for i in ritems) <= capacity,\
+            "Capacity constraint for bin %s" %j)
+
+    # Solve
+    m.setParam('OutputFlag', 0)
+
+    m.optimize()
+
+    return m.status == GRB.status.OPTIMAL
 
 ################## Example ####################
 

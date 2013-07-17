@@ -39,6 +39,10 @@ def bin_factory(num_bins, capacity=1):
 
     return bins;
 
+def clean_bins(bins):
+    for b in bins:
+        b.clean()
+
 class Bin:
     """ A bin """
     def __init__(self, capacity=1):
@@ -83,6 +87,10 @@ class Bin:
 
     def used(self):
         return self.capacity-self.remaining
+
+    def clean(self):
+        self.remaining = self.capacity
+        self.items = []
 
 
 ################## Generator ####################
