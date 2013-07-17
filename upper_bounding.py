@@ -40,7 +40,9 @@ def run(weights, num_bins, capacity=1, lower_bound=-1):
         if w <= capacity:
             ws.append(w)
 
-    ws.sort()
+    # Sort items by decreasing order of their weights
+    ws.sort(reverse=True)
+
     if lower_bound == -1:
         lower_bound = capacity
     val = branch(ws, bins, num_bins*capacity, lower_bound, 2*capacity)
@@ -199,7 +201,7 @@ def branch(weights, bins, rem_cap, lower_bound, upper_bound, memo={}):
 
 def main():
     print "Solver = "+IPSolver
-    size = 10
+    size = 11
     for nbins in xrange(2, 10):
         nbins = 3
         print "==========="
