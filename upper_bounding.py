@@ -201,22 +201,35 @@ def branch(weights, bins, rem_cap, lower_bound, upper_bound, memo={}):
 
 
 ################## Main routines ####################
+def make_parser():
+    parser = argparse.ArgumentParser(
+        description='Finds the biggest lower bound achievable by\
+            an adversary for the bin stretching problem in given space')
+    parser.add_argument('capacity', metavar='C', type=int, nargs=1,
+            help = 'bin capacity (items 1, 2,..., C are allowed)')
+    parser.add_argument('nbins', metavar='N', type=int, nargs=1,
+            help = 'number of bins')
+    return parser
 
 def main():
-    print "Solver = "+IPSolver
-    size = 10
-    for nbins in xrange(2, 10):
-        nbins = 3
-        print "==========="
-        print "Packing items of size 1 to %s into %s bins" % (size,nbins)
-        t0 = time.time()
-        res = run(range(1,size+1), num_bins=nbins, capacity=size,\
-                lower_bound=4*size/3)   # We want to improve 4/3 lower bound
-        t0 = time.time() - t0
-        print "Stretching factor: %s/%s = %s" % (res,size,float(res)/size)
-        break
-    print "Time spent verifying feasibility: %s" % ttime
-    print "Total elapsed time: %s" % t0
+    p = make_parser()
+    args = p.parse_args()
+    size = args.capacity[0]
+    nbins = args.nbins[0]
+
+    print "Integer Programming solver used = "+IPSolver
+    print "==========="
+    print "Packing items of size 1 to %s into %s bins" % (size,nbins)
+
+    t0 = time.time()
+    res = run(range(1,size+1), num_bins=nbins, capacity=size,\
+            lower_bound=4*size/3)   # We want to improve 4/3 lower bound
+    t0 = time.time() - t0
+
+    print "Stretching factor:\t\t\t%s/%s\t= %s" % (res,size,float(res)/size)
+
+    print "Time spent verifying feasibility:\t\t  %s" % ttime
+    print "Total elapsed time:\t\t\t\t  %s" % t0
 
 if __name__ == "__main__":
     main()
