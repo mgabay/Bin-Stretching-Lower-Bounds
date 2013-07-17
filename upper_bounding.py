@@ -40,6 +40,7 @@ def run(weights, num_bins, capacity=1, lower_bound=-1):
         if w <= capacity:
             ws.append(w)
 
+    ws.sort()
     if lower_bound == -1:
         lower_bound = capacity
     val = branch(ws, bins, num_bins*capacity, lower_bound, 2*capacity)
