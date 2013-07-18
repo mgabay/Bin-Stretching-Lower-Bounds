@@ -10,29 +10,37 @@ from bins import *
 from heuristic import *
 #from gurobipy import *
 import random
+import binascii
 
 ################## Bin Packing modeling ####################
 
 # Memorize problem solved
 mem = {}
 
-def make_tuple(items, num_bins, capacity):
+def make_key(items, num_bins, capacity):
     d = {}
     for i in items:
         s = i.size
         if s in d: d[s] += 1
         else: d[s] = 1
-    l = d.items()
+    l = []
+    for i, j in d.iteritems():
+        l.append(i)
+        l.append(j)
+
+    # MEMORY: spare some memory by commenting the following 2 lines:
     l.append(num_bins)
     l.append(capacity)
-    return tuple(l)
+
+    return binascii.rlecode_hqx(' '.join(str(i) for i in l))
+    #return tuple(l)
 
 def is_feasible(items, num_bins, capacity, solver="GLPK"):
     ret, res = is_trivial(items, num_bins, capacity)
     if ret:
         return res
     global mem
-    t = make_tuple(items, num_bins, capacity)
+    t = make_key(items, num_bins, capacity)
     if t in mem:
         return mem[t]
     ret, res = heuristics(items, num_bins, capacity)

@@ -6,12 +6,16 @@ The aim is to maximize the score against any deterministic algorithm.
 That is: maximize alpha s.t. there exist some opponent choices that forces
 any deterministic algorith to fill items into bins with a stretching factor
 at least 1+alpha.
+
+Remark: if memory is an issue, search for "MEMORY" comments and you will
+    be able to spare some unnecessary used space
 """
 
 import time
 from bins import *
 from bpsolver import *
 import argparse
+import binascii
 
 # TODO:
 #   Solution tracking, format: (configuration, item, solutions)
@@ -45,9 +49,16 @@ def run(weights, num_bins, capacity=1, lower_bound=-1):
     # Sort items by decreasing order of their weights
     ws.sort(reverse=True)
 
+    d = {}
     if lower_bound == -1:
         lower_bound = capacity
-    val = branch(ws, bins, num_bins*capacity, lower_bound, 2*capacity)
+    val = branch(ws, bins, num_bins*capacity, lower_bound, 2*capacity, d)
+
+    """ Memory profiling
+    from guppy import hpy
+    h = hpy()
+    print h.heap()
+    """
 
     return val
 
@@ -77,7 +88,7 @@ def is_feasible_instance(bins, item):
 
 
 ####### Memoization #######
-def make_tuple(bins):
+def make_key(bins):
     l = []
     d = {}
     for b in bins:
@@ -87,9 +98,16 @@ def make_tuple(bins):
             if s not in d: d[s] = 1
             else: d[s] += 1
     l.sort()
-    for i in d.items():
+    # MEMORY: spare some memory by removing the following line:
+    l.append(-1)
+    # separate bins from items / use less memory than making a list of tuples...
+    # not required here since the number of bins is fixed
+    for i, j in d.iteritems():
         l.append(i)
-    return tuple(l)
+        l.append(j)
+
+    return binascii.rlecode_hqx(' '.join(str(i) for i in l))
+    #return tuple(l)
 
 
 def recall(memo, t, lower_bound, upper_bound):
@@ -103,13 +121,8 @@ def recall(memo, t, lower_bound, upper_bound):
     return val
 
 
-def update(memo, bins, lower_bound, upper_bound, value):
-    # update is only invoked when really required
-    t = make_tuple(bins)
-    memo[t] = (lower_bound, upper_bound, value)
-
 def solve(memo, bins, lower_bound, upper_bound, rem_cap, weights):
-    t = make_tuple(bins)
+    t = make_key(bins)
     ret = recall(memo, t, lower_bound, upper_bound)
     if ret: return ret
     ret = branch(weights, bins, rem_cap, lower_bound, upper_bound, memo)
