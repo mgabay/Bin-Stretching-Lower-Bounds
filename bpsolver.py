@@ -28,7 +28,8 @@ def make_key(items, num_bins, capacity):
         l.append(i)
         l.append(j)
 
-    # MEMORY: spare some memory by commenting the following 2 lines:
+    # MEMORY: if num_bins and capacity never change, spare some memory
+    # by removing the following 2 lines:
     l.append(num_bins)
     l.append(capacity)
 
