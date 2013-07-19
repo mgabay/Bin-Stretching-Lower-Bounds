@@ -9,6 +9,7 @@ from pulp import *
 #from gurobipy import *
 
 import jpype
+from py4j.java_gateway import JavaGateway, GatewayClient
 
 import os
 import random
@@ -66,7 +67,8 @@ def is_feasible(items, num_bins, capacity, solver="GLPK"):
     """
 
     if solver == "CHOCO" or solver == "CP":
-        sol = CPSolve(items, num_bins, capacity)
+        #sol = CPSolve(items, num_bins, capacity)
+        sol = py4j_solve(items, num_bins, capacity)
 
     else:
         mod = make_model(items, num_bins, capacity)
@@ -296,6 +298,27 @@ def run_jvm():
 # Unnecessary
 def close_jvm():
     jpype.shutdownJVM()
+
+
+gateway = None
+def py4j_run():
+    global gateway
+    gateway = JavaGateway()
+
+def py4j_solve(items, num_bins, capacity):
+    global gateway
+    if not gateway: py4j_run()
+
+    int_class = gateway.jvm.int
+    jitems = gateway.new_array(int_class,len(items))
+    for i, it in enumerate(items):
+        jitems[i] = it.size
+
+    solver = stack = gateway.entry_point.getSolver()
+    solver.reset(jitems, num_bins, capacity)
+
+    return solver.isFeasible()
+
 
 ################## Example ####################
 
