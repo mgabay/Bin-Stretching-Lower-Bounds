@@ -1,5 +1,5 @@
 # -*- coding: UTF-8 -*-
-from random import random, shuffle
+import random
 
 
 ################## Items management ####################
@@ -111,7 +111,7 @@ def generate_instance(num_bins, capacity=1, full=False, rounding=2):
     i = 0
     while (i < num_bins):
         current_bin = bins[i]
-        x = random()
+        x = random.random()
         if (rounding): x = round(x, rounding)
         item = Item(x)
         if current_bin.add(item):
@@ -125,7 +125,7 @@ def generate_instance(num_bins, capacity=1, full=False, rounding=2):
             items.append(item)
         i += 1
 
-    shuffle(items)
+    random.shuffle(items)
     return items, bins
 
 

@@ -22,7 +22,8 @@ import binascii
 #       (recursive format: in given configuration, give this item
 #       then chose solution corresponding to the new configuration)
 
-IPSolver="GLPK"
+SOLVER="GLPK"
+SOLVER="CHOCO"
 
 
 ################## Engine ####################
@@ -48,6 +49,9 @@ def run(weights, num_bins, capacity=1, lower_bound=-1):
 
     # Sort items by decreasing order of their weights
     ws.sort(reverse=True)
+
+    if SOLVER == "CHOCO" or SOLVER == "CP":
+        run_jvm()
 
     d = {}
     if lower_bound == -1:
@@ -82,7 +86,7 @@ def is_feasible_instance(bins, item):
 
     global ttime
     t = time.time()
-    r = is_feasible(items, len(bins), bins[0].capacity, IPSolver)
+    r = is_feasible(items, len(bins), bins[0].capacity, SOLVER)
     ttime += time.time() - t
     return r
 
@@ -230,7 +234,7 @@ def main():
     size = args.capacity[0]
     nbins = args.nbins[0]
 
-    print "Integer Programming solver used = "+IPSolver
+    print "Solver used = "+SOLVER
     print "==========="
     print "Packing items of size 1 to %s into %s bins" % (size,nbins)
 

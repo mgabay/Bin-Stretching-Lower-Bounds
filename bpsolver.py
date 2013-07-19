@@ -6,11 +6,17 @@ Solver to the bin packing problem, using integer programming
 #sys.path.append('/usr/local/lib/python2.7/dist-packages/PuLP-1.5.4-py2.7.egg/pulp')
 from pulp import *
 #import yaposib
-from bins import *
-from heuristic import *
 #from gurobipy import *
+
+import jpype
+
+import os
 import random
 import binascii
+
+from bins import *
+from heuristic import *
+
 
 ################## Bin Packing modeling ####################
 
@@ -59,8 +65,12 @@ def is_feasible(items, num_bins, capacity, solver="GLPK"):
     else:
     """
 
-    mod = make_model(items, num_bins, capacity)
-    sol = solve(mod, solver)
+    if solver == "CHOCO" or solver == "CP":
+        sol = CPSolve(items, num_bins, capacity)
+
+    else:
+        mod = make_model(items, num_bins, capacity)
+        sol = solve(mod, solver)
     #sol = grb_solve(items, num_bins, capacity)
     #assert grb_solve(items, num_bins, capacity) == sol
 
@@ -259,6 +269,33 @@ def grb_solve(items, num_bins, capacity):
     m.optimize()
 
     return m.status == GRB.status.OPTIMAL
+
+
+def CPSolve(items, num_bins, capacity):
+    ClassSolver = jpype.JClass("solver.BPSolver")
+
+    items = [i.size for i in items]
+    bp = ClassSolver(items, num_bins, capacity)
+
+    return bp.isFeasible()
+
+
+def run_jvm():
+    jvmpath = '/usr/lib/jvm/java-6-openjdk-amd64/jre/lib/amd64/server/libjvm.so'
+
+    jarpath = '/home/gabaym/Dropbox/workspace/lib/'
+    classpath = ''
+    for files in os.listdir(jarpath):
+        if files.endswith(".jar"):
+            classpath += ':'+jarpath+files
+    classpath = classpath[1:]
+    cpath = '-Djava.class.path=%s' % classpath
+
+    jpype.startJVM(jvmpath, cpath)
+
+# Unnecessary
+def close_jvm():
+    jpype.shutdownJVM()
 
 ################## Example ####################
 
