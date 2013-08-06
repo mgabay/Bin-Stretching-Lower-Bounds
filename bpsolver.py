@@ -67,8 +67,8 @@ def is_feasible(items, num_bins, capacity, solver="GLPK"):
     """
 
     if solver == "CHOCO" or solver == "CP":
-        #sol = CPSolve(items, num_bins, capacity)
-        sol = py4j_solve(items, num_bins, capacity)
+        sol = CPSolve(items, num_bins, capacity)
+        #sol = py4j_solve(items, num_bins, capacity)
 
     else:
         mod = make_model(items, num_bins, capacity)
@@ -285,7 +285,7 @@ def CPSolve(items, num_bins, capacity):
 def run_jvm():
     jvmpath = '/usr/lib/jvm/java-6-openjdk-amd64/jre/lib/amd64/server/libjvm.so'
 
-    jarpath = '/home/gabaym/Dropbox/workspace/lib/'
+    jarpath = 'lib/'
     classpath = ''
     for files in os.listdir(jarpath):
         if files.endswith(".jar"):

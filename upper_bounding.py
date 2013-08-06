@@ -22,7 +22,6 @@ import binascii
 #       (recursive format: in given configuration, give this item
 #       then chose solution corresponding to the new configuration)
 
-SOLVER="GLPK"
 SOLVER="CHOCO"
 
 
