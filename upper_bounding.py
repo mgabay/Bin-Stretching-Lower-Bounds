@@ -16,6 +16,8 @@ from bins import *
 from bpsolver import *
 import argparse
 import binascii
+from tree import *
+from time import gmtime, strftime
 
 # TODO:
 #   Solution tracking, format: (configuration, item, solutions)
@@ -55,7 +57,14 @@ def run(weights, num_bins, capacity=1, lower_bound=-1):
     d = {}
     if lower_bound < 0:
         lower_bound = capacity
-    val = branch(ws, bins, num_bins*capacity, lower_bound, 1.53*capacity, d)
+
+    root=TreeNode()
+    val = branch(ws, bins, num_bins*capacity, lower_bound, 1.53*capacity,
+            d, backtrack=root)
+    #strftime("%Y-%m-%d %H:%M:%S", gmtime())
+    f = open('backtrack.dot', 'w')
+    f.write(root.dot())
+    f.close()
 
     """ Memory profiling
     from guppy import hpy
@@ -124,18 +133,23 @@ def recall(memo, t, lower_bound, upper_bound):
     return val
 
 
-def solve(memo, bins, lower_bound, upper_bound, rem_cap, weights):
+def solve(memo, bins, lower_bound, upper_bound, rem_cap, weights, backtrack):
     t = make_key(bins)
     ret = recall(memo, t, lower_bound, upper_bound)
-    if ret: return ret
-    ret = branch(weights, bins, rem_cap, lower_bound, upper_bound, memo)
+    if ret:
+        backtrack.attr['cut'] = "Memoized value"
+        backtrack.attr['val'] = ret
+        return ret
+    ret = branch(weights, bins, rem_cap, lower_bound, upper_bound,
+            memo, backtrack)
     memo[t] = (lower_bound, upper_bound, ret)
     return ret
 
 
 ####### End Memoization #######
 
-def branch(weights, bins, rem_cap, lower_bound, upper_bound, memo={}):
+def branch(weights, bins, rem_cap, lower_bound, upper_bound, memo={},
+        backtrack=False):
     """
     Branching: Finds the best feasible upper bound within given limits
     Depth first search exploration
@@ -156,6 +170,7 @@ def branch(weights, bins, rem_cap, lower_bound, upper_bound, memo={}):
         raise NameError('Branching to pack items in... no bins!')
     assert rem_cap >= 0
     if lower_bound >= upper_bound:
+        backtrack.attr['cut'] = "LB >= UB"
         return lower_bound
 
     # Smallest and largest used capacities
@@ -170,6 +185,7 @@ def branch(weights, bins, rem_cap, lower_bound, upper_bound, memo={}):
 
     if max_bin >= upper_bound:
         # fathom branch:  we have stretched enough already
+        backtrack.attr['cut'] = "Wmax >= UB"
         return max_bin
     """
     if max_bin + rem_cap <= lower_bound:
@@ -181,38 +197,55 @@ def branch(weights, bins, rem_cap, lower_bound, upper_bound, memo={}):
     """
     if min_bin + rem_cap <= lower_bound:
         # useless branch
+        backtrack.attr['cut'] = "Cannot improve"
         return lower_bound
 
-    bb = [b for b in bins]
-    bb.sort(key=lambda x: x.remaining, reverse=True)
+    bb = sorted(bins, key=lambda x: x.remaining, reverse=False)
     best_stretch = max(max_bin,lower_bound)
+    best_sons = []
     for w in weights:
         if w > rem_cap: continue
         it = Item(w)
         if not is_feasible_instance(bb, it): continue
         if min_bin + w >= upper_bound:
+            backtrack.attr['cut'] = "Wmin + "+str(w)+" >= UB"
             return min_bin + w
         prev_rem = -1
         stretch = upper_bound
+        backtrack.attr['Next weight'] = w
+        sons = []
         for b in bb:
             if b.remaining == prev_rem:
                 # try a single bin for any given couple (item weight, bin weight)
                 continue
             prev_rem = b.remaining
             b.force_add(it)
+
+            bt = TreeNode()
+            bt.attr['bins'] = [u.used()
+                    for u in sorted(bins, key=lambda x: id(x))]
+            sons.append(bt)
+
             # upper_bound is updated to current min stretching factor for this item
             # lower bound is updated to the best stretching factor on all items.
-            val = solve(memo, bb, best_stretch, stretch, rem_cap-w, weights)
+            val = solve(memo, bb, best_stretch, stretch, rem_cap-w,
+                    weights, bt)
+
             b.rem_last()
             stretch = min(val, stretch)
             if stretch <= best_stretch: break
         if stretch >= upper_bound:
             # item w gives a good enough solution
+            backtrack.attr['val'] = stretch
+            backtrack.extend(sons)
             return stretch
         if stretch > best_stretch:
             best_item = w
             best_stretch = stretch
+            best_sons = sons
 
+    backtrack.attr['val'] = best_stretch
+    backtrack.extend(best_sons)
     return best_stretch
 
 
