@@ -53,9 +53,9 @@ def run(weights, num_bins, capacity=1, lower_bound=-1):
         run_jvm()
 
     d = {}
-    if lower_bound == -1:
+    if lower_bound < 0:
         lower_bound = capacity
-    val = branch(ws, bins, num_bins*capacity, lower_bound, 2*capacity, d)
+    val = branch(ws, bins, num_bins*capacity, lower_bound, 1.53*capacity, d)
 
     """ Memory profiling
     from guppy import hpy
@@ -100,7 +100,7 @@ def make_key(bins):
             s = i.size
             if s not in d: d[s] = 1
             else: d[s] += 1
-    l.sort()
+    l.sort() # break symmetries
     # MEMORY: spare some memory by removing the following line:
     l.append(-1)
     # separate bins from items / use less memory than making a list of tuples...
@@ -156,7 +156,7 @@ def branch(weights, bins, rem_cap, lower_bound, upper_bound, memo={}):
         raise NameError('Branching to pack items in... no bins!')
     assert rem_cap >= 0
     if lower_bound >= upper_bound:
-        return upper_bound
+        return lower_bound
 
     # Smallest and largest used capacities
     u = bins[0].used()
@@ -170,7 +170,7 @@ def branch(weights, bins, rem_cap, lower_bound, upper_bound, memo={}):
 
     if max_bin >= upper_bound:
         # fathom branch:  we have stretched enough already
-        return upper_bound
+        return max_bin
     """
     if max_bin + rem_cap <= lower_bound:
         # useless branch
@@ -191,7 +191,7 @@ def branch(weights, bins, rem_cap, lower_bound, upper_bound, memo={}):
         it = Item(w)
         if not is_feasible_instance(bb, it): continue
         if min_bin + w >= upper_bound:
-            return upper_bound
+            return min_bin + w
         prev_rem = -1
         stretch = upper_bound
         for b in bb:
@@ -208,7 +208,7 @@ def branch(weights, bins, rem_cap, lower_bound, upper_bound, memo={}):
             if stretch <= best_stretch: break
         if stretch >= upper_bound:
             # item w gives a good enough solution
-            return upper_bound
+            return stretch
         if stretch > best_stretch:
             best_item = w
             best_stretch = stretch
