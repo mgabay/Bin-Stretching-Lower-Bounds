@@ -16,14 +16,11 @@ from bins import *
 from bpsolver import *
 import argparse
 import binascii
+import random
 from tree import *
 from time import gmtime, strftime
 
-# TODO:
-#   Solution tracking, format: (configuration, item, solutions)
-#       (recursive format: in given configuration, give this item
-#       then chose solution corresponding to the new configuration)
-
+# Chose exact solver for the bin packing problem
 SOLVER="CHOCO"
 
 
@@ -50,6 +47,8 @@ def run(weights, num_bins, capacity=1, lower_bound=-1):
 
     # Sort items by decreasing order of their weights
     ws.sort(reverse=True)
+    # WARNING: if the order is changed then, feasibility has to be verified
+    # for every item ! cf boolean feasibilityVerified in branch()
 
     if SOLVER == "CHOCO" or SOLVER == "CP":
         run_jvm()
@@ -187,13 +186,12 @@ def branch(weights, bins, rem_cap, lower_bound, upper_bound, memo={},
         # fathom branch:  we have stretched enough already
         backtrack.attr['cut'] = "Wmax >= UB"
         return max_bin
+
     """
-    if max_bin + rem_cap <= lower_bound:
-        # useless branch
-        return lower_bound
-    max_bin + rem_cap obviously allows fathoming but some algorithms will
-    pack all item into the smallest remaining bin, hence min_bin + rem_cap
-    allows fathoming as well ! (be careful on returned value!)
+    The condition: if max_bin + rem_cap <= lower_bound: fathom
+    is obvious. However, some deterministic algorithms will pack all of
+    the remaining items into current smallest bin.
+    Hence, min_bin + rem_cap allows fathoming as well !
     """
     if min_bin + rem_cap <= lower_bound:
         # useless branch
@@ -203,10 +201,14 @@ def branch(weights, bins, rem_cap, lower_bound, upper_bound, memo={},
     bb = sorted(bins, key=lambda x: x.remaining, reverse=False)
     best_stretch = max(max_bin,lower_bound)
     best_sons = []
+    feasibilityVerified = False
     for w in weights:
         if w > rem_cap: continue
         it = Item(w)
-        if not is_feasible_instance(bb, it): continue
+        #if not is_feasible_instance(bb, it): continue
+        if not feasibilityVerified:
+            if not is_feasible_instance(bb, it): continue
+            feasibilityVerified = True
         if min_bin + w >= upper_bound:
             backtrack.attr['cut'] = "Wmin + "+str(w)+" >= UB"
             return min_bin + w
@@ -258,6 +260,8 @@ def make_parser():
             help = 'bin capacity (items 1, 2,..., C are allowed)')
     parser.add_argument('nbins', metavar='N', type=int, nargs=1,
             help = 'number of bins')
+    parser.add_argument('-r', nargs=1, type=int,
+            help='Generates R random numbers in 1..C')
     return parser
 
 def main():
@@ -265,17 +269,25 @@ def main():
     args = p.parse_args()
     size = args.capacity[0]
     nbins = args.nbins[0]
+    r = args.r
 
     print "Solver used = "+SOLVER
     print "==========="
     print "Packing items of size 1 to %s into %s bins" % (size,nbins)
 
+    if r:
+        weights = random.sample(xrange(1,size+1), r[0])
+    else:
+        weights = range(1,size+1)
+    weights.sort()
+    print "Weights = %s" % (weights)
+
     t0 = time.time()
-    res = run(range(1,size+1), num_bins=nbins, capacity=size,\
+    res = run(weights, num_bins=nbins, capacity=size,\
             lower_bound=4*size/3)   # We want to improve 4/3 lower bound
     t0 = time.time() - t0
 
-    print "Stretching factor:\t\t\t%s/%s\t= %s" % (res,size,float(res)/size)
+    print "\nStretching factor:\t\t\t%s/%s\t= %s" % (res,size,float(res)/size)
 
     print "Time spent verifying feasibility:\t\t  %s" % ttime
     print "Total elapsed time:\t\t\t\t  %s" % t0

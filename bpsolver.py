@@ -43,6 +43,7 @@ def make_key(items, num_bins, capacity):
     return binascii.rlecode_hqx(' '.join(str(i) for i in l))
     #return tuple(l)
 
+calls = 0
 def is_feasible(items, num_bins, capacity, solver="GLPK"):
     ret, res = is_trivial(items, num_bins, capacity)
     if ret:
@@ -65,6 +66,11 @@ def is_feasible(items, num_bins, capacity, solver="GLPK"):
         mem[t] = sol
     else:
     """
+
+    global calls
+    calls += 1
+    sys.stdout.write("\rCP calls:\t%d" %calls)
+    sys.stdout.flush()
 
     if solver == "CHOCO" or solver == "CP":
         sol = CPSolve(items, num_bins, capacity)
@@ -164,7 +170,11 @@ def is_trivial(items, num_bins, capacity):
 
 def heuristics(items, num_bins, capacity):
     # First-Fit Increasing
-    items.sort()
+    items.sort(reverse=True)
+    if (len(items) <= num_bins): # defensive: verified in is_trivial
+        return True, True
+    if (items[num_bins-1].size + items[num_bins].size > capacity):
+        return True, False
     big = 0
     half = 0
     idx = 0
@@ -183,17 +193,18 @@ def heuristics(items, num_bins, capacity):
     if 2*big + half > 2*num_bins:
         return True, False
 
-    # FFD
+    # BFD
+    #items.sort(reverse=True)
     tmp_bins = bin_factory(num_bins, capacity)
-    items.sort(reverse=True)
     if first_fit(items, tmp_bins):
         return True, True
 
-    for i in xrange(max(2,capacity-8)):
-        clean_bins(tmp_bins)
-        random.shuffle(items)
-        if first_fit(items, tmp_bins):
-            return True, True
+    # Randomized best fit
+    #for i in xrange(max(2,capacity-8)):
+    #    clean_bins(tmp_bins)
+    #    random.shuffle(items)
+    #    if first_fit(items, tmp_bins):
+    #        return True, True
 
     return False, True
 
