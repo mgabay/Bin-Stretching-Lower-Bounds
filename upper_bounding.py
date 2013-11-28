@@ -132,6 +132,21 @@ def recall(memo, t, lower_bound, upper_bound):
     return val
 
 
+def store(memo, t, lower_bound, upper_bound, ret):
+    if not t in memo:
+        memo[t] = (lower_bound,upper_bound,ret)
+        return
+    # We know that lb < ub and:
+    # (val >= ub and ub < upper_bound) || (val <= lb and lb > lower_bound)
+    lb, ub, val = memo[t]
+    if val >= ub and ub < upper_bound:
+        memo[t] = (min(lower_bound,lb), upper_bound, max(ret,val))
+    elif val <= lb and lb > lower_bound:
+        memo[t] = (lower_bound, max(upper_bound,ub), min(ret,val))
+    else:
+        raise NameError("Memo issue: both tests shall not fail")
+
+
 def solve(memo, bins, lower_bound, upper_bound, rem_cap, weights, backtrack):
     t = make_key(bins)
     ret = recall(memo, t, lower_bound, upper_bound)
@@ -141,7 +156,8 @@ def solve(memo, bins, lower_bound, upper_bound, rem_cap, weights, backtrack):
         return ret
     ret = branch(weights, bins, rem_cap, lower_bound, upper_bound,
             memo, backtrack)
-    memo[t] = (lower_bound, upper_bound, ret)
+    #store(memo, t, lower_bound, upper_bound, ret)
+    memo[t] = (lower_bound,upper_bound,ret)
     return ret
 
 
@@ -280,6 +296,7 @@ def main():
     else:
         weights = range(1,size+1)
     weights.sort()
+
     print "Weights = %s" % (weights)
 
     t0 = time.time()
