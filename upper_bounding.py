@@ -75,6 +75,7 @@ def run(weights, num_bins, capacity=1, lower_bound=-1):
 
 
 ttime = 0
+fcalls = 0
 def is_feasible_instance(bins, item):
     """
     Return true iff there is a feasible solution
@@ -91,6 +92,8 @@ def is_feasible_instance(bins, item):
     items = [i for b in bins for i in b.items]
     items.append(item)
 
+    global fcalls
+    fcalls += 1
     global ttime
     t = time.time()
     r = is_feasible(items, len(bins), bins[0].capacity, SOLVER)
@@ -163,6 +166,7 @@ def solve(memo, bins, lower_bound, upper_bound, rem_cap, weights, backtrack):
 
 ####### End Memoization #######
 
+nodes = 0
 def branch(weights, bins, rem_cap, lower_bound, upper_bound, memo={},
         backtrack=False):
     """
@@ -181,6 +185,8 @@ def branch(weights, bins, rem_cap, lower_bound, upper_bound, memo={},
 
     Return maximal stretching factor
     """
+    global nodes
+    nodes += 1
     if not bins:
         raise NameError('Branching to pack items in... no bins!')
     assert rem_cap >= 0
@@ -306,7 +312,9 @@ def main():
 
     print "\nStretching factor:\t\t\t%s/%s\t= %s" % (res,size,float(res)/size)
 
+    print "Feasibility checks:\t\t\t\t  %s" % fcalls
     print "Time spent verifying feasibility:\t\t  %s" % ttime
+    print "#nodes:\t\t\t\t\t\t  %s" % nodes
     print "Total elapsed time:\t\t\t\t  %s" % t0
 
 if __name__ == "__main__":
