@@ -54,12 +54,10 @@ from bpsolver import *
 import argparse
 import binascii
 import random
+import yaml
+import os
 from tree import *
 from time import gmtime, strftime
-
-# Chose exact solver for the bin packing problem
-SOLVER="CHOCO"
-
 
 ################## Engine ####################
 
@@ -88,7 +86,7 @@ def run(weights, num_bins, capacity=1, lower_bound=-1):
     # for every item ! cf boolean feasibilityVerified in branch()
 
     if SOLVER == "CHOCO" or SOLVER == "CP":
-        run_jvm()
+        run_jvm(jvmpath, jarpath)
 
     d = {}
     if lower_bound < 0:
@@ -323,12 +321,35 @@ def make_parser():
             help='Generates R random numbers in 1..C')
     return parser
 
+def config():
+    # Parse config file
+    dirn = os.path.dirname(sys.argv[0])
+    cnf = dirn + '/config.conf'
+    stream = file(cnf)
+    conf = yaml.load(stream)
+    stream.close()
+
+    # Set config
+    global SOLVER, jvmpath, jarpath
+    if 'solver' in conf:
+        SOLVER = conf['solver']
+    else: SOLVER = 'CHOCO'
+    if 'jvmpath' in conf:
+        jvmpath = conf['jvmpath']
+    if 'jarpath' in conf:
+        jarpath = dirn + '/' + conf['jarpath']
+    else: jarpath = dirn + '/../lib/'
+
 def main():
+    # Parse options
     p = make_parser()
     args = p.parse_args()
     size = args.capacity[0]
     nbins = args.nbins[0]
     r = args.r
+
+    # Parse config file and set options
+    config()
 
     print "Solver used = "+SOLVER
     print "==========="
