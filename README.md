@@ -1,12 +1,13 @@
 Bin Stretching Lower Bounds
 ================================
 
-This is a scientific project. The provided code is a proof of concept on how to use game theoretic results to automatically find and prove new lower bounds for online and semi-online scheduling and packing problems.
+This is a scientific project. The code is a proof of concept on how to use game theory results to automatically find and prove new lower bounds for online and semi-online scheduling and packing problems.
 
-A paper explaining the ideas and purpose of this project is available on [HAL] [1].
+This program aim at finding and proving new lower bounds for the bin stretching problem.
+A detailed paper, explaining the ideas and purpose of this project is available on [HAL] [1].
 
 Source code is provided under [CeCILL License] [2].
-Any use of this work shall include a citation to [the paper] [1] and [the license] [2].
+Any use of this work shall cite both [the paper] [1] and [the license] [2].
 
 [1]: http://hal.archives-ouvertes.fr/index.php                    "HAL"
 [2]: http://www.cecill.info/licences/Licence_CeCILL_V2.1-en.html  "CeCILL License"
@@ -20,6 +21,7 @@ The path of the java virtual machine shall be specified.
 
 Other options can remain unchanged, unless directories are reorganized or the user wants to use a different solver.
 
+The program has several dependencies but most of them are depending on solver used and can be switched off by commenting their imports in [`bpsolver.py`](py/bpsolver.py).
 
 Running program
 ---------------
@@ -36,23 +38,20 @@ The optional option `-r R` can be specified to realize a sampling of *R* accepte
 A few code details
 ------------------
 
-The code is a proof of concept, it is written in Python and sometimes has to solves exact bin packing problems.
-Several approach are implemented to solve exactly the problems. Each of these option can be selected by setting the variable `solver`, in [the configuration file](py/config.conf):
+The code is a proof of concept, it is written in Python.
+In the course of the algorithm, some bin packing problems have to be solved exactly. Several approach are implemented to solve this problem. Each of these can be selected by setting the variable `solver`, in [the configuration file](py/config.conf). The available approaches are:
 
-1. Constraint programming, using Choco as a solver. Choco is implemented in java,
-so an additional component is required for Python to communicate with the jvm.
+1. Constraint programming, using Choco as a solver. Choco is implemented in java, so an additional component is required for Python to communicate with the jvm.
    * *(Preferred with CPython)* Using JPype to communicate with the jvm. `solver: CHOCO`
    * *(Preferred with PyPy)* Using Py4J as a communicating component. `solver: CHOCO4J`
 2. Using integer programming.
-   * The problem is modeled using PuLP and then, one of the solver compatible
- with PuLP has to be selected. This include:
+   * The problem is modeled using PuLP and then, one of the solver compatible with PuLP has to be selected:
         * *(Preferred LP solver)* GLPK: `solver: GLPK`.
         * COIN Cbc: `solver: CBC`.
         * CPLEX: `solver: CPLEX`.
         * Gurobi: `solver: GUROBI`.
         * Various solvers through yaposib. To use it, browse and modify [`bpsolver.py`](py/bpsolver.py).
-   * The model has also been implemented using Gurobi API. To use it, browse and
- modify [`bpsolver.py`](py/bpsolver.py).
+   * The model has also been implemented using Gurobi's API. To use it, browse and modify [`bpsolver.py`](py/bpsolver.py).
 
 We recommend using the **PyPy** interpreter to run programs. However, PyPy is complicated to interface with JPype. Hence, using PyPy, CHOCO4J is the preferred option for solving bin packing problems.
 

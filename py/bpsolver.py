@@ -40,17 +40,10 @@ Solver to the bin packing problem, using integer programming
 """
 
 import os
-#import sys
-#sys.path.extend(['', '/usr/local/lib/python2.7/dist-packages/PuLP-1.5.4-py2.7.egg', '/usr/local/lib/python2.7/dist-packages/pyparsing-1.5.7-py2.7.egg', '/usr/local/lib/python2.7/dist-packages/py4j-0.8-py2.7.egg', '/home/scrat/Dropbox/PhD/bin stretching/ub', '/usr/lib/python2.7', '/usr/lib/python2.7/plat-linux2', '/usr/lib/python2.7/lib-tk', '/usr/lib/python2.7/lib-old', '/usr/lib/python2.7/lib-dynload', '/usr/local/lib/python2.7/dist-packages', '/usr/lib/python2.7/dist-packages','/usr/lib/python2.7/dist-packages/PIL', '/usr/lib/python2.7/dist-packages/gst-0.10', '/usr/lib/python2.7/dist-packages/gtk-2.0', '/usr/lib/pymodules/python2.7', '/usr/lib/python2.7/dist-packages/ubuntu-sso-client', '/usr/lib/python2.7/dist-packages/ubuntuone-client', '/usr/lib/python2.7/dist-packages/ubuntuone-control-panel', '/usr/lib/python2.7/dist-packages/ubuntuone-couch', '/usr/lib/python2.7/dist-packages/ubuntuone-storage-protocol'])
+import sys
+# Required for pypy to locate py4j and pulp
+sys.path.extend(['/usr/local/lib/python2.7/dist-packages/py4j-0.8-py2.7.egg', '/usr/local/lib/python2.7/dist-packages', '/usr/lib/python2.7/dist-packages'])
 
-from pulp import *
-#import yaposib
-#from gurobipy import *
-
-import jpype
-from py4j.java_gateway import JavaGateway, GatewayClient
-
-import os
 import random
 import binascii
 
@@ -62,6 +55,26 @@ from heuristic import *
 
 # Memorize problem solved
 mem = {}
+
+def init_solver(solver, lib):
+    if solver == "CHOCO" or solver == "CP":
+        global jpype
+        import jpype
+    elif solver == "CHOCO4J" or solver == "CP4J":
+        global JavaGateway, GatewayClient
+        from py4j.java_gateway import JavaGateway, GatewayClient
+        from subprocess import Popen
+        global p4jproc
+        args = ['java', '-jar', lib+'/solver.jar']
+        p4jproc = Popen(args)
+    else:
+        #import yaposib
+        plp = __import__('pulp',globals(),locals())
+        globals().update(plp.__dict__)
+
+def terminate_solver(solver):
+    if solver == "CHOCO4J" or solver == "CP4J":
+        p4jproc.kill()
 
 def make_key(items, num_bins, capacity):
     d = {}

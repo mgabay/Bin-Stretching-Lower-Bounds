@@ -55,7 +55,7 @@ import argparse
 import binascii
 import random
 import yaml
-import os
+import os, sys
 from tree import *
 from time import gmtime, strftime
 
@@ -85,6 +85,7 @@ def run(weights, num_bins, capacity=1, lower_bound=-1):
     # WARNING: if the order is changed then, feasibility has to be verified
     # for every item ! cf boolean feasibilityVerified in branch()
 
+    init_solver(SOLVER, jarpath)
     if SOLVER == "CHOCO" or SOLVER == "CP":
         run_jvm(jvmpath, jarpath)
 
@@ -99,6 +100,8 @@ def run(weights, num_bins, capacity=1, lower_bound=-1):
     f = open('backtrack.dot', 'w')
     f.write(root.dot())
     f.close()
+
+    terminate_solver(SOLVER)
 
     """ Memory profiling
     from guppy import hpy
@@ -324,7 +327,7 @@ def make_parser():
 def config():
     # Parse config file
     dirn = os.path.dirname(sys.argv[0])
-    cnf = dirn + '/config.conf'
+    cnf = os.path.abspath(dirn) + '/config.conf'
     stream = file(cnf)
     conf = yaml.load(stream)
     stream.close()
@@ -337,8 +340,8 @@ def config():
     if 'jvmpath' in conf:
         jvmpath = conf['jvmpath']
     if 'jarpath' in conf:
-        jarpath = dirn + '/' + conf['jarpath']
-    else: jarpath = dirn + '/../lib/'
+        jarpath = os.path.abspath(dirn) + '/' + conf['jarpath']
+    else: jarpath = os.path.abspath(dirn) + '/../lib/'
 
 def main():
     # Parse options
