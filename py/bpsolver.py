@@ -115,7 +115,7 @@ def is_feasible(items, num_bins, capacity, solver="GLPK"):
     if solver == "CHOCO" or solver == "CP":
         sol = CPSolve(items, num_bins, capacity)
 
-    if solver == "CHOCO4J" or solver == "CP4J":
+    elif solver == "CHOCO4J" or solver == "CP4J":
         sol = py4j_solve(items, num_bins, capacity)
 
     else:
