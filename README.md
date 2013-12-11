@@ -34,6 +34,11 @@ Where *C* denotes the capacity of the bins and *N* their numbers.
 
 The optional option `-r R` can be specified to realize a sampling of *R* accepted capacities among the *C* possibly considered.
 
+A file named backtrack.dot is generated. If the lower bound is improved, the decision tree is written to this file.
+This file is in Dot (GraphViz) format. You can generate a picture from it using the command:
+
+    dot -Tpdf backtrack.dot -o file.pdf
+
 
 A few code details
 ------------------
