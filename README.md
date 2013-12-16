@@ -21,7 +21,12 @@ The path of the java virtual machine shall be specified.
 
 Other options can remain unchanged, unless directories are reorganized or the user wants to use a different solver.
 
-The program has several dependencies but most of them are depending on solver used and can be switched off by commenting their imports in [`bpsolver.py`](py/bpsolver.py).
+The program dependencies are Python and PyYaml (to parse configuration files). For the other dependencies, imports are done dynamically, so only one of the following dependencies needs to be satisfied:
+ * Choco (provided) and JPype
+ * Choco (provided) and Py4J
+ * PuLP and an LP solver among GLPK/Cbc/CPLEX/Gurobi
+ * Gurobi with its python bindings
+
 
 Running program
 ---------------
@@ -59,6 +64,7 @@ In the course of the algorithm, some bin packing problems have to be solved exac
    * The model has also been implemented using Gurobi's API. To use it, browse and modify [`bpsolver.py`](py/bpsolver.py).
 
 We recommend using the **PyPy** interpreter to run programs. However, PyPy is complicated to interface with JPype. Hence, using PyPy, CHOCO4J is the preferred option for solving bin packing problems.
+
 
 Referenced projects
 -------------------

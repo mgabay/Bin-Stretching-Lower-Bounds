@@ -94,7 +94,7 @@ def run(weights, num_bins, capacity=1, lower_bound=-1):
         lower_bound = capacity
 
     root=TreeNode()
-    val = branch(ws, bins, num_bins*capacity, lower_bound, 1.53*capacity,
+    val = branch(ws, bins, num_bins*capacity, lower_bound, 26.*capacity/17.,
             d, backtrack=root)
     #strftime("%Y-%m-%d %H:%M:%S", gmtime())
     f = open('backtrack.dot', 'w')
