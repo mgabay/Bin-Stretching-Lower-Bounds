@@ -9,7 +9,7 @@ A detailed paper, explaining the ideas and purpose of this project is available 
 Source code is provided under [CeCILL License] [2].
 Any use of this work shall cite both [the paper] [1] and this project with [its license] [2].
 
-[1]: http://hal.archives-ouvertes.fr/index.php                    "HAL"
+[1]: http://hal.archives-ouvertes.fr/hal-00921663                 "HAL"
 [2]: http://www.cecill.info/licences/Licence_CeCILL_V2.1-en.html  "CeCILL License"
 
 
