@@ -45,9 +45,20 @@ class TreeNode(list):
         return '%s(%s, %r)' % (type(self).__name__, list.__repr__(self),
                 self.attr)
 
+    def is_leaf(self):
+        return len(self) == 0
+
     def id(self):
         return "n"+str(id(self))
 
+    def set_input(self, inp=[]):
+        """ Propagates Next weight to the sons in order
+        to keep track of the input sequence """
+        if self.is_leaf():
+            self.attr['input'] = inp[:]
+        if 'Next weight' in self.attr:
+            inp.append(self.attr['Next weight'])
+        for node in self: node.set_input(inp[:])
 
     def dot(self):
         s  = "graph {\n"

@@ -94,8 +94,10 @@ def run(weights, num_bins, capacity=1, lower_bound=-1):
         lower_bound = capacity
 
     root=TreeNode()
+    root.attr['Name']="Root"
     val = branch(ws, bins, num_bins*capacity, lower_bound, 26.*capacity/17.,
             d, backtrack=root)
+    root.set_input()
     #strftime("%Y-%m-%d %H:%M:%S", gmtime())
     f = open('backtrack.dot', 'w')
     f.write(root.dot())
@@ -193,7 +195,7 @@ def solve(memo, bins, lower_bound, upper_bound, rem_cap, weights, backtrack):
     ret = recall(memo, t, lower_bound, upper_bound)
     if ret:
         backtrack.attr['cut'] = "Memoized value"
-        backtrack.attr['val'] = ret
+        #backtrack.attr['val'] = ret
         return ret
     ret = branch(weights, bins, rem_cap, lower_bound, upper_bound,
             memo, backtrack)
@@ -274,7 +276,6 @@ def branch(weights, bins, rem_cap, lower_bound, upper_bound, memo={},
             return min_bin + w
         prev_rem = -1
         stretch = upper_bound
-        backtrack.attr['Next weight'] = w
         sons = []
         for b in bb:
             if b.remaining == prev_rem:
@@ -298,15 +299,16 @@ def branch(weights, bins, rem_cap, lower_bound, upper_bound, memo={},
             if stretch <= best_stretch: break
         if stretch >= upper_bound:
             # item w gives a good enough solution
-            backtrack.attr['val'] = stretch
+            backtrack.attr['Next weight'] = w
+            #backtrack.attr['val'] = stretch
             backtrack.extend(sons)
             return stretch
         if stretch > best_stretch:
-            best_item = w
+            backtrack.attr['Next weight'] = w
             best_stretch = stretch
             best_sons = sons
 
-    backtrack.attr['val'] = best_stretch
+    #backtrack.attr['val'] = best_stretch
     backtrack.extend(best_sons)
     return best_stretch
 
