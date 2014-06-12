@@ -64,9 +64,11 @@ def init_solver(solver, lib):
         global JavaGateway, GatewayClient
         from py4j.java_gateway import JavaGateway, GatewayClient
         from subprocess import Popen
+        import time
         global p4jproc
         args = ['java', '-jar', lib+'/solver.jar']
         p4jproc = Popen(args)
+        time.sleep(1) # wait a second to make sure the server is really open
     else:
         #import yaposib
         plp = __import__('pulp',globals(),locals())

@@ -61,7 +61,7 @@ class TreeNode(list):
         for node in self: node.set_input(inp[:])
 
     def dot(self):
-        s  = "graph {\n"
+        s  = "digraph {\n"
         s += self.dot_enc()
         return s + "}\n"
 
@@ -75,7 +75,7 @@ class TreeNode(list):
         s += "\"];\n"
 
         for i in self:
-            s += self.id()+" -- "+i.id()+";\n"
+            s += self.id()+" -> "+i.id()+";\n"
             s += i.dot_enc()
 
         return s
