@@ -59,6 +59,9 @@ import os, sys
 from tree import *
 from time import gmtime, strftime
 
+# An LRU dict for memoization purposes
+from pylru import lrucache
+
 ################## Engine ####################
 
 def run(weights, num_bins, capacity=1, lower_bound=-1):
@@ -89,7 +92,7 @@ def run(weights, num_bins, capacity=1, lower_bound=-1):
     if SOLVER == "CHOCO" or SOLVER == "CP":
         run_jvm(jvmpath, jarpath)
 
-    d = {}
+    d = lrucache(int(2e7))
     if lower_bound < 0:
         lower_bound = capacity
 
@@ -200,6 +203,7 @@ def solve(memo, bins, lower_bound, upper_bound, rem_cap, weights, backtrack):
     ret = branch(weights, bins, rem_cap, lower_bound, upper_bound,
             memo, backtrack)
     #store(memo, t, lower_bound, upper_bound, ret)
+
     memo[t] = (lower_bound,upper_bound,ret)
     return ret
 
