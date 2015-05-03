@@ -108,7 +108,7 @@ def run(weights, num_bins, capacity=1, lower_bound=-1):
     """ Memory profiling
     from guppy import hpy
     h = hpy()
-    print h.heap()
+    print(h.heap())
     """
 
     return val
@@ -156,11 +156,11 @@ def make_key(bins):
     l.append(-1)
     # separate bins from items / use less memory than making a list of tuples...
     # not required here since the number of bins is fixed
-    for i, j in d.iteritems():
+    for i, j in d.items():
         l.append(i)
         l.append(j)
 
-    return binascii.rlecode_hqx(' '.join(str(i) for i in l))
+    return binascii.rlecode_hqx(bytes(' '.join(str(i) for i in l),'UTF-8'))
     #return tuple(l)
 
 
@@ -330,7 +330,7 @@ def config():
     # Parse config file
     dirn = os.path.dirname(sys.argv[0])
     cnf = os.path.abspath(dirn) + '/config.conf'
-    stream = file(cnf)
+    stream = open(cnf)
     conf = yaml.load(stream)
     stream.close()
 
@@ -356,17 +356,18 @@ def main():
     # Parse config file and set options
     config()
 
-    print "Solver used = "+SOLVER
-    print "==========="
-    print "Packing items of size 1 to %s into %s bins" % (size,nbins)
+    print("Solver used = "+SOLVER)
+    print("===========")
+    print("Packing items of size 1 to %s into %s bins" % (size,nbins))
 
     if r:
-        weights = random.sample(xrange(1,size+1), r[0])
+        weights = random.sample(range(1,size+1), r[0])
     else:
         weights = range(1,size+1)
+    weights = list(weights) # for python 2/3 compatibility
     weights.sort()
 
-    print "Weights = %s" % (weights)
+    print("Weights = %s" % (weights))
 
     lb = 4*size / 3
     t0 = time.time()
@@ -375,14 +376,14 @@ def main():
     t0 = time.time() - t0
 
     if res == lb:
-        print "\nStretching factor <= %f" % (float(lb)/size)
+        print("\nStretching factor <= %f" % (float(lb)/size))
     else:
-        print "\nStretching factor improved:\t\t%s/%s\t= %s" % (res,size,float(res)/size)
+        print("\nStretching factor improved:\t\t%s/%s\t= %s" % (res,size,float(res)/size))
 
-    print "Feasibility checks:\t\t\t\t  %s" % fcalls
-    print "Time spent verifying feasibility:\t\t  %s" % ttime
-    print "#nodes:\t\t\t\t\t\t  %s" % nodes
-    print "Total elapsed time:\t\t\t\t  %s" % t0
+    print("Feasibility checks:\t\t\t\t  %s" % fcalls)
+    print("Time spent verifying feasibility:\t\t  %s" % ttime)
+    print("#nodes:\t\t\t\t\t\t  %s" % nodes)
+    print("Total elapsed time:\t\t\t\t  %s" % t0)
 
 if __name__ == "__main__":
     main()

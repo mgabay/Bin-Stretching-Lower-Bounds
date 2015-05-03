@@ -50,7 +50,6 @@ import binascii
 from bins import *
 from heuristic import *
 
-
 ################## Bin Packing modeling ####################
 
 # Memorize problem solved
@@ -85,7 +84,7 @@ def make_key(items, num_bins, capacity):
         if s in d: d[s] += 1
         else: d[s] = 1
     l = []
-    for i, j in d.iteritems():
+    for i, j in d.items():
         l.append(i)
         l.append(j)
 
@@ -94,7 +93,7 @@ def make_key(items, num_bins, capacity):
     l.append(num_bins)
     l.append(capacity)
 
-    return binascii.rlecode_hqx(' '.join(str(i) for i in l))
+    return binascii.rlecode_hqx(bytes(' '.join(str(i) for i in l),'UTF-8'))
     #return tuple(l)
 
 calls = 0
@@ -143,8 +142,8 @@ def is_feasible(items, num_bins, capacity, solver="GLPK"):
     return sol
 
 def make_model(items, num_bins, capacity):
-    ritems = xrange(len(items))
-    rbins = xrange(num_bins)
+    ritems = range(len(items))
+    rbins = range(num_bins)
     prob = LpProblem("Bin Packing Feasibility",LpMinimize)
     prob += 0, "No objective: feasibility problem"
     var = {(i,j): LpVariable("x("+str(i)+","+str(j)+")",0,1,LpBinary)\
@@ -183,7 +182,7 @@ def make_model(items, num_bins, capacity):
             prev = items[i].size
             continue
         for j in rbins:
-            prob += lpSum(var[(i-1,k)] for k in xrange(j+1)) >= var[(i,j)],\
+            prob += lpSum(var[(i-1,k)] for k in range(j+1)) >= var[(i,j)],\
                 "Breaking symmetry, "+str((i,j))
     """
 
@@ -257,7 +256,7 @@ def heuristics(items, num_bins, capacity):
         return True, True
 
     # Randomized best fit
-    #for i in xrange(max(2,capacity-8)):
+    #for i in range(max(2,capacity-8)):
     #    clean_bins(tmp_bins)
     #    random.shuffle(items)
     #    if first_fit(items, tmp_bins):
@@ -286,8 +285,8 @@ def solve(model, solver="GLPK"):
 
 
 def grb_solve(items, num_bins, capacity):
-    ritems = xrange(len(items))
-    rbins = xrange(num_bins)
+    ritems = range(len(items))
+    rbins = range(num_bins)
 
     # Model
     m = Model("Bin Packing Feasibility")
@@ -389,7 +388,7 @@ def py4j_solve(items, num_bins, capacity):
 ################## Example ####################
 
 def main():
-    it = [Item(i+1) for i in xrange(4)]
+    it = [Item(i+1) for i in range(4)]
     m = make_model(it, 2, 4)
     assert not solve(m)
     #assert not solve(m, "COIN")
@@ -405,7 +404,7 @@ def main():
     #assert solve(m, "COIN")
     #assert solve(m, "GUROBI")
     #assert solve(m, "CPLEX")
-    print "Dummy tests passed"
+    print("Dummy tests passed")
 
 if __name__ == "__main__":
     main()

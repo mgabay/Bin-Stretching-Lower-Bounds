@@ -68,7 +68,7 @@ class TreeNode(list):
     def dot_enc(self):
         s = self.id()+" [label=\""
 
-        for i,j in self.attr.iteritems():
+        for i,j in self.attr.items():
             s += i+": "+str(j)+"\\n"
         if self.attr:
             s = s[:-2]

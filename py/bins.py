@@ -37,7 +37,6 @@
 
 import random
 
-
 ################## Items management ####################
 
 class Item:
@@ -53,6 +52,12 @@ class Item:
 
     def __cmp__(self,other):
         return cmp(self.size,other.size)
+
+    def __lt__(self,other):
+        return self.size < other.size
+
+    def __eq__(self,other):
+        return self.size == other.size
 
     # For addition of two Items
     def __add__(self,other):
@@ -70,7 +75,7 @@ class Item:
 
 def bin_factory(num_bins, capacity=1):
     bins = []
-    for i in xrange(num_bins):
+    for i in range(num_bins):
         bins.append(Bin(capacity))
 
     return bins;
