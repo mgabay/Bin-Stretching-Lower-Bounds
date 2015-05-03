@@ -92,7 +92,10 @@ def run(weights, num_bins, capacity=1, lower_bound=-1):
     if SOLVER == "CHOCO" or SOLVER == "CP":
         run_jvm(jvmpath, jarpath)
 
-    d = lrucache(int(2e7))
+    # Create cache
+    if cache_size <= 0: d = {}
+    else: d = lrucache(cache_size)
+
     if lower_bound < 0:
         lower_bound = capacity
 
@@ -339,7 +342,7 @@ def config():
     stream.close()
 
     # Set config
-    global SOLVER, jvmpath, jarpath
+    global SOLVER, jvmpath, jarpath, cache_size
     if 'solver' in conf:
         SOLVER = conf['solver']
     else: SOLVER = 'CHOCO'
@@ -348,6 +351,9 @@ def config():
     if 'jarpath' in conf:
         jarpath = os.path.abspath(dirn) + '/' + conf['jarpath']
     else: jarpath = os.path.abspath(dirn) + '/../lib/'
+    if 'cache-size' in conf:
+        cache_size = conf['cache-size']
+    else: cache_size = 0
 
 def main():
     # Parse options
